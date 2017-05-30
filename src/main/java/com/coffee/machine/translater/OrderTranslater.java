@@ -5,7 +5,13 @@ import com.coffee.machine.beans.Order;
 
 public class OrderTranslater {
 	
-	String translateOrder(Order order) {
+	public static final String CHOCOLATE_CHAR = "H";
+	public static final String COFFEE_CHAR = "C";
+	public static final String TEA_CHAR = "T";
+	public static final String ORANGE_JUICE_CHAR = "O";
+	public static final String MESSAGE_CHAR = "M";
+	
+	public String translateOrder(Order order) {
 		int sugars = order.getSugars();
 		double amount = order.getAmount();
 		Drink drink = order.getDrink();
@@ -27,22 +33,17 @@ public class OrderTranslater {
 	}
 	
 	private String determineDrinkChar(Drink drink) {
-		String drinkChar = null;
 		switch(drink) {
 		case CHOCOLATE:
-			drinkChar = "H";
-			break;
+			return CHOCOLATE_CHAR;
 		case COFFEE:
-			drinkChar = "C";
-			break;
+			return COFFEE_CHAR;
 		case TEA:
-			drinkChar = "T";
-			break;
+			return TEA_CHAR;
 		case ORANGE_JUICE:
-			drinkChar = "O";
-			break;
+			return ORANGE_JUICE_CHAR;
+		default: return null;
 		}
-		return drinkChar;
 	}
 	
 }
