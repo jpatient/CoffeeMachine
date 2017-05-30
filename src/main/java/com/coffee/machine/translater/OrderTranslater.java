@@ -16,6 +16,7 @@ public class OrderTranslater {
 		double amount = order.getAmount();
 		Drink drink = order.getDrink();
 		
+		// Check for the amount
 		if (amount < drink.getCost()) {
 			String liaisonChar = drinkStartsByVowel(drink) ? "n" : "";
 			return String.format("M:It misses %.2f for a%s %s", drink.getCost() - amount, liaisonChar, drink.getLabel());
@@ -26,6 +27,10 @@ public class OrderTranslater {
 		String stickChar = sugars > 0 ? "0" : "";
 		String extraHotChar = order.isExtraHot() ? "h" : "";
 		return String.format("%s%s:%s:%s", drinkChar, extraHotChar, sugarsChar, stickChar);
+	}
+	
+	public String getMessageForUnavailableDrink(Drink drink) {
+		return String.format("M:%s is not available. An email was sent to the company.", drink.getLabel());
 	}
 	
 	private static boolean drinkStartsByVowel(Drink drink) {

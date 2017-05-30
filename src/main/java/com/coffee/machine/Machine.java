@@ -5,19 +5,34 @@ import java.util.Map;
 
 import com.coffee.machine.beans.Drink;
 import com.coffee.machine.beans.Order;
+import com.coffee.machine.services.BeverageQuantityChecker;
+import com.coffee.machine.services.EmailNotifier;
 import com.coffee.machine.translater.OrderTranslater;
 
 public class Machine {
+	
+	private BeverageQuantityChecker beverageQuantityChecker;
+	private EmailNotifier emailNotifier;
 	
 	private OrderTranslater orderTranslater = new OrderTranslater();
 	private Map<Drink, Integer> drinkCounter = new HashMap<>();
 
 	public String manageOrder(Order order) {
+		Drink drink = order.getDrink();
+		
+		// check for the availability of the beverage
+		if (beverageQuantityChecker.isEmpty(drink.getLabel())) {
+			emailNotifier.notifyMissingDrink(drink.getLabel());
+			return orderTranslater.getMessageForUnavailableDrink(drink);
+		}
+		
+		// translate the order
 		String command = orderTranslater.translateOrder(order);
 		
+		// count the delivery beverage for stats
 		if (!commandIsAMessage(command)) {
-			Integer nbOfDrinkAlreadyOrdered = null != drinkCounter.get(order.getDrink()) ? drinkCounter.get(order.getDrink()) : 0;
-			drinkCounter.put(order.getDrink(), nbOfDrinkAlreadyOrdered + 1);
+			Integer nbOfDrinkAlreadyOrdered = null != drinkCounter.get(drink) ? drinkCounter.get(drink) : 0;
+			drinkCounter.put(drink, nbOfDrinkAlreadyOrdered + 1);
 		}
 		
 		return command;
@@ -42,6 +57,14 @@ public class Machine {
 		String report = builder.toString();
 		System.out.println(report);
 		return report;
+	}
+
+	void setBeverageQuantityChecker(BeverageQuantityChecker beverageQuantityChecker) {
+		this.beverageQuantityChecker = beverageQuantityChecker;
+	}
+
+	void setEmailNotifier(EmailNotifier emailNotifier) {
+		this.emailNotifier = emailNotifier;
 	}
 
 }

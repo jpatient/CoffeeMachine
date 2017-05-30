@@ -3,15 +3,33 @@ package com.coffee.machine;
 import java.util.Random;
 
 import org.assertj.core.api.Assertions;
+import org.mockito.Mockito;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.coffee.machine.Machine;
 import com.coffee.machine.beans.Drink;
 import com.coffee.machine.beans.Order;
+import com.coffee.machine.services.BeverageQuantityChecker;
+import com.coffee.machine.services.EmailNotifier;
 
 public class MachineTest {
 	
-	private Machine machine = new Machine();
+	private BeverageQuantityChecker mockedBeverageQuantityChecker;
+	private EmailNotifier mockedEmailNotifier;
+	
+	private Machine machine;
+	
+	@BeforeMethod(alwaysRun = true)
+	public void initMock() {
+		machine = new Machine();
+		mockedBeverageQuantityChecker = Mockito.mock(BeverageQuantityChecker.class);
+		Mockito.when(mockedBeverageQuantityChecker.isEmpty(Mockito.anyString())).thenReturn(false);
+		
+		mockedEmailNotifier = Mockito.mock(EmailNotifier.class);
+		
+		machine.setBeverageQuantityChecker(mockedBeverageQuantityChecker);
+		machine.setEmailNotifier(mockedEmailNotifier);
+	}
 	
 	@Test
 	public void testTranslateOrder_OrangeJuice_WithAmountRequired() {
@@ -217,6 +235,24 @@ public class MachineTest {
 		Assertions.assertThat(splitReport[3]).isEqualTo("Sold orange juices:4");
 		Assertions.assertThat(splitReport[4]).isEqualTo("Total maked money:11,00€");
 		System.out.println("test fini");
+	}
+	
+	@Test
+	public void testOrderAvailableCoffee() {
+		testTranslateOrder(new Order(Drink.COFFEE, 1, 0.6d, false));
+		
+		Mockito.verify(mockedBeverageQuantityChecker, Mockito.only()).isEmpty(Drink.COFFEE.getLabel());
+	}
+	
+	@Test
+	public void testOrderUnavailableOrangeJuice() {
+		Mockito.when(mockedBeverageQuantityChecker.isEmpty(Drink.ORANGE_JUICE.getLabel())).thenReturn(true);
+		Mockito.doNothing().when(mockedEmailNotifier).notifyMissingDrink(Drink.ORANGE_JUICE.getLabel());
+		
+		testTranslateOrder(new Order(Drink.ORANGE_JUICE, 1.0d));
+		
+		Mockito.verify(mockedBeverageQuantityChecker, Mockito.times(1)).isEmpty(Drink.ORANGE_JUICE.getLabel());
+		Mockito.verify(mockedEmailNotifier, Mockito.times(1)).notifyMissingDrink(Drink.ORANGE_JUICE.getLabel());
 	}
 	
 	private String testTranslateOrder(Order order) {
